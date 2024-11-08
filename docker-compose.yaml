@@ -1,0 +1,38 @@
+version: '3.1'
+services:
+  web:
+    image: odoo:latest
+    depends_on:
+      - db
+    restart: always
+    ports:
+      - "9069:8069" # Odoo port
+      - "9072:8072" # Odoo websocket port for websocket communication
+
+    volumes:
+      - odoo-web-data-minva:/var/lib/odoo
+      - ./config:/etc/odoo
+      - ./addons:/mnt/extra-addons
+    environment:
+      - PASSWORD_FILE=/run/secrets/postgresql_password
+    secrets:
+      - postgresql_password
+  db:
+    image: postgres:latest
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_PASSWORD_FILE=/run/secrets/postgresql_password
+      - POSTGRES_USER=odoo
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    restart: always
+    volumes:
+      - odoo-db-data-minva:/var/lib/postgresql/data/pgdata
+    secrets:
+      - postgresql_password
+volumes:
+  odoo-web-data-minva:
+  odoo-db-data-minva:
+
+secrets:
+  postgresql_password:
+    file: odoo_pg_pass
